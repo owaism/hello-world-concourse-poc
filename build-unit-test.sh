@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "starting...\n"
-echo "Java Version: $(java -v)"
+echo "Java Version: $(java -version)"
 ls
 echo "TERM: $TERM"
 export GRADLE_OPTS=-Dorg.gradle.native=false
