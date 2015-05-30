@@ -30,7 +30,7 @@ jobs:
         - name: rc-version
       run:
         path: my-code/build-unit-test
-        args: source-code
+        args: [source-code/build.gradle]
   - put: rc-version
     resource: app-version
     params: 
