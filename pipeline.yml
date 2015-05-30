@@ -23,7 +23,7 @@ jobs:
         - name: rc-version
       run:
         path: my-code/build-unit-test.sh
-        args: [source-code/build.gradle, hello-world-app, rc-version/number]
+        args: [source-code, hello-world-app, rc-version/number]
   - put: rc-version
     resource: app-version
     params: 
