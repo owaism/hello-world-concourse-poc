@@ -6,7 +6,7 @@ jobs:
   plan:
   - aggregate:
     - get: source-code
-    # - get: my-code
+    - get: my-code
     - get: rc-version
       resource: app-version
       params:
@@ -26,14 +26,11 @@ jobs:
       image: docker:///niaquinto/gradle
       inputs:
         - name: source-code
-        # - name: my-code
+        - name: my-code
         - name: rc-version
       run:
-        path: export 
+        path: my-code/build-unit-test
         args: [GRADLE_OPTS=-Dorg.gradle.native=false]
-      run:
-        path: gradle
-        args: [-b source-code/build.gradle, war]
   - aggregate:
     - task: display-file-structure
       config:
@@ -84,10 +81,10 @@ resources:
   type: git
   source:
     uri: https://github.com/Covisint-Hackathon/Java-HelloWorld-Sample.git
-# - name: my-code
-#   type: git
-#   source:
-#     uri: https://github.com/owaism/dynatrace-concourse-poc.git
+- name: my-code
+  type: git
+  source:
+    uri: https://github.com/owaism/hello-world-concourse-poc.git
 - name: dev-cf
   type: cf
   source:
