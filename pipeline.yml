@@ -1,0 +1,115 @@
+---
+jobs:
+- name: build-unit-test
+  public: true
+  serial: true
+  plan:
+  - aggregate:
+    - get: source-code
+    # - get: my-code
+    - get: rc-version
+      resource: app-version
+      params:
+        bump: minor
+        pre: rc
+  - task: display-file-structure
+    config:
+      platform: linux
+      inputs:
+      - name: source-code
+      run:
+        path: ls
+        args: [source-code]
+  - task: build-unit-test
+    config:
+      platform: linux
+      image: docker:///niaquinto/gradle
+      inputs:
+        - name: source-code
+        # - name: my-code
+        - name: rc-version
+      run:
+        path: export 
+        args: [GRADLE_OPTS=-Dorg.gradle.native=false]
+      run:
+        path: gradle
+        args: [-b source-code/build.gradle, war]
+  - aggregate:
+    - task: display-file-structure
+      config:
+        platform: linux
+        inputs:
+          - name: build-unit-test
+        run:
+          path: export GRADLE_OPTS=-Dorg.gradle.native=false
+        run:
+          path: ls
+          args: [build-unit-test/build/libs/Java-HelloWorld-Sample-1.0.war]
+    - put: rc-version
+      resource: app-version
+      params: 
+        file: rc-version/number
+    - put: artifact-repo
+      params:
+        from: build-unit-test/dynatrace-service-broker-(.)*\.jar
+
+# - name: dev-deploy
+#   public: true
+#   serial: true
+#   plan:
+#   - aggregate:
+#     - get: my-code
+#    - get: artifact-repo
+#      params:
+#        filename: dynatrace-service-broker-*.jar
+#        version: rc-version/number
+#   - aggregate:
+#     - task: debug-artificate-repo
+#       config:
+#         platform: linux
+#         inputs:
+#           #- name: artifact-repo
+#           - name: build-unit-test
+#         run:
+#           path: ls
+#           args: [build-unit-test]
+#   - aggregate:
+#     - put: dev-cf
+#       params:
+#         manifest: my-code/manifest.yml
+#         path: artifact-repo/dynatrace-service-broker-0.1.0-rc.17.jar
+
+resources:
+- name: source-code
+  type: git
+  source:
+    uri: https://github.com/Covisint-Hackathon/Java-HelloWorld-Sample.git
+# - name: my-code
+#   type: git
+#   source:
+#     uri: https://github.com/owaism/dynatrace-concourse-poc.git
+- name: dev-cf
+  type: cf
+  source:
+    api: {{cf-api}}
+    username: {{cf-username}}
+    password: {{cf-password}}
+    organization: {{cf-organization}}
+    space: {{cf-space}}
+    skip_cert_check: false
+- name: artifact-repo
+  type: s3
+  source:
+    access_key_id: {{aws_access_key}}
+    secret_access_key: {{aws_secret_key}}
+    bucket: {{s3-rc-artifact-bucket}}
+    regexp: hello-world-poc-([0-9]+\.[0-9]+\.[0-9]+)\.jar
+    endpoint: s3-us-west-2.amazonaws.com
+- name: app-version
+  type: semver
+  source:
+    bucket: {{s3-artifact-version-bucket}}
+    key: hello-word-poc
+    access_key_id: {{aws_access_key}}
+    secret_access_key: {{aws_secret_key}}
+    endpoint: s3-us-west-2.amazonaws.com
