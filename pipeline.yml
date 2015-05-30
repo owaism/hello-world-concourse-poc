@@ -12,14 +12,14 @@ jobs:
       params:
         bump: minor
         pre: rc
-  - task: display-file-structure
-    config:
-      platform: linux
-      inputs:
-      - name: source-code
-      run:
-        path: ls
-        args: [source-code]
+  # - task: display-file-structure
+  #   config:
+  #     platform: linux
+  #     inputs:
+  #     - name: source-code
+  #     run:
+  #       path: ls
+  #       args: [source-code]
   - task: build-unit-test
     config:
       platform: linux
@@ -30,25 +30,14 @@ jobs:
         - name: rc-version
       run:
         path: my-code/build-unit-test
-        args: [GRADLE_OPTS=-Dorg.gradle.native=false]
-  - aggregate:
-    - task: display-file-structure
-      config:
-        platform: linux
-        inputs:
-          - name: build-unit-test
-        run:
-          path: export GRADLE_OPTS=-Dorg.gradle.native=false
-        run:
-          path: ls
-          args: [build-unit-test/build/libs/Java-HelloWorld-Sample-1.0.war]
-    - put: rc-version
-      resource: app-version
-      params: 
-        file: rc-version/number
-    - put: artifact-repo
-      params:
-        from: build-unit-test/dynatrace-service-broker-(.)*\.jar
+        args: source-code
+  - put: rc-version
+    resource: app-version
+    params: 
+      file: rc-version/number
+  - put: artifact-repo
+    params:
+      from: build-unit-test/dynatrace-service-broker-(.)*\.jar
 
 # - name: dev-deploy
 #   public: true
