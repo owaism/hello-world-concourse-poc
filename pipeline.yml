@@ -8,36 +8,29 @@ jobs:
     - get: source-code
     - get: my-code
     - get: rc-version
+      trigger: false
       resource: app-version
       params:
         bump: minor
         pre: rc
-  # - task: display-file-structure
-  #   config:
-  #     platform: linux
-  #     inputs:
-  #     - name: source-code
-  #     run:
-  #       path: ls
-  #       args: [source-code]
   - task: build-unit-test
     config:
       platform: linux
-      image: docker:///niaquinto/gradle
+      image: docker:///pierrevincent/gradle-java8
       inputs:
         - name: source-code
         - name: my-code
         - name: rc-version
       run:
         path: my-code/build-unit-test.sh
-        args: [source-code/build.gradle]
+        args: [source-code/build.gradle, hello-world-app, rc-version/number]
   - put: rc-version
     resource: app-version
     params: 
       file: rc-version/number
   - put: artifact-repo
     params:
-      from: build-unit-test/dynatrace-service-broker-(.)*\.jar
+      from: build-unit-test/hello-world-app(.)*+\.war
 
 # - name: dev-deploy
 #   public: true
