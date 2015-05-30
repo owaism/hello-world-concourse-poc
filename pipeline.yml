@@ -29,7 +29,7 @@ jobs:
         - name: my-code
         - name: rc-version
       run:
-        path: my-code/build-unit-test
+        path: my-code/build-unit-test.sh
         args: [source-code/build.gradle]
   - put: rc-version
     resource: app-version
