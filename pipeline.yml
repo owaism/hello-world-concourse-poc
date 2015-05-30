@@ -42,9 +42,10 @@ jobs:
       params:
        filename: hello-world-app(.)+\.war
        version: rc-version/number
-    - get: deployment-manifest-store
-      params:
-       filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+  - get: deployment-manifest-store
+    params:
+     #filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+     filename: hello-world-app-dev-([0-9]+\.[0-9]+\.[0-9]+).yml
   - task: setup-cf-push
     config:
       platform: linux
@@ -93,7 +94,7 @@ resources:
     access_key_id: {{aws_access_key}}
     secret_access_key: {{aws_secret_key}}
     bucket: {{s3-deployment-manifest-bucket}}
-    regexp: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+    regexp: hello-world-app-dev-([0-9]+\.[0-9]+\.[0-9]+).yml
     endpoint: s3-us-west-2.amazonaws.com
 - name: app-version
   type: semver
