@@ -15,7 +15,7 @@ jobs:
         bump: minor
         pre: rc
   - task: build-unit-test
-    file: my-code/build-unit-test.yml
+    file: my-code/task-build-unit-test.yml
   - put: artifact-repo
     params:
       from: build-unit-test/hello-world-app(.)+\.war
