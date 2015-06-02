@@ -6,6 +6,7 @@ jobs:
   plan:
   - aggregate:
     - get: source-code
+      trigger: true
     - get: my-code
     - get: rc-version
       trigger: false
@@ -42,10 +43,12 @@ jobs:
       params:
        filename: hello-world-app(.)+\.war
        version: rc-version/number
-  - get: deployment-manifest-store
-    params:
-     #filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
-     filename: hello-world-app-dev-([0-9]+\.[0-9]+\.[0-9]+).yml
+      passed: [build-unit-test]
+      trigger: true
+    - get: deployment-manifest-store
+      params:
+       filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+       #filename: hello-world-app-dev-([0-9]+\.[0-9]+\.[0-9]+).yml
   - task: setup-cf-push
     config:
       platform: linux
@@ -62,11 +65,31 @@ jobs:
         manifest: setup-cf-push/manifest.yml
         path: setup-cf-push/deployable-artifact.war
 
+- name: func-test
+  public: true
+  serial: true
+  plan:
+  - aggregate:
+    - get: my-code      
+    # - get: deployment-manifest-store
+    #   params:
+    #     filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+    - get: source-code
+      #passed: [dev-deploy]
+  - task: func-test
+    config:
+      platform: linux
+      image: docker:///owaism/ubuntu-java8-gradle-ruby
+      inputs:
+      - name: source-code
+      run:
+        path: my-code/func-test.sh
+        args: [source-code]
 resources:
 - name: source-code
   type: git
   source:
-    uri: https://github.com/Covisint-Hackathon/Java-HelloWorld-Sample.git
+    uri: https://github.com/owaism/java-helloworld-concourse-sample.git
 - name: my-code
   type: git
   source:
