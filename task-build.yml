@@ -5,5 +5,5 @@ inputs:
 - name: ci-code
 - name: rc-version
 run:
-  path: product-code/build.sh
+  path: ci-code/build.sh
   args: [product-code, hello-world-app, rc-version/number]
