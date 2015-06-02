@@ -1,26 +1,39 @@
 ---
 jobs:
-- name: build-unit-test
+
+- name: unit-test
   public: true
   serial: true
   plan:
   - aggregate:
-    - get: source-code
+    - get: product-code
       trigger: true
-    - get: my-code
+    - get: ci-code
+  - task: unit-test
+    file: ci-code/task-unit-test.yml
+
+- name: build
+  public: true
+  serial: true
+  plan:
+  - aggregate:
+    - get: product-code
+      passed: [unit-test]
+      trigger: true
+    - get: ci-code
     - get: rc-version
       trigger: false
-      resource: app-version
+      resource: version
       params:
         bump: minor
         pre: rc
-  - task: build-unit-test
-    file: my-code/task-build-unit-test.yml
+  - task: build
+    file: ci-code/task-build.yml
   - put: artifact-repo
     params:
-      from: build-unit-test/hello-world-app(.)+\.war
+      from: build/hello-world-app(.)+\.war
   - put: rc-version
-    resource: app-version
+    resource: version
     params: 
       file: rc-version/number
 
@@ -29,53 +42,71 @@ jobs:
   serial: true
   plan:
   - aggregate:
-    - get: my-code
+    - get: ci-code
     - get: artifact-repo
       params:
        filename: hello-world-app(.)+\.war
        version: rc-version/number
-      passed: [build-unit-test]
+      passed: [build]
       trigger: true
     - get: deployment-manifest-store
       params:
        filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
     - get: rc-version
-      passed: [build-unit-test]
-      resource: app-version
+      passed: [build]
+      resource: version
   - task: setup-cf-dev-push
-    file: my-code/task-setup-cf-dev-push.yml
+    file: ci-code/task-setup-cf-dev-push.yml
   - put: dev-cf
     params:
-      manifest: setup-cf-push/manifest.yml
-      path: setup-cf-push/deployable-artifact.war
+      manifest: setup-cf-dev-push/manifest.yml
+      path: setup-cf-dev-push/deployable-artifact.war
   - put: rc-deployment-manifest-store
     params:
-      from: hello-world-app-dev-(.)+\.yml
+      from: hello-world-app-dev-(.)+-rc(.)+\.yml
 
-- name: func-test
+- name: dev-smoke-test
   public: true
   serial: true
   plan:
   - aggregate:
-    - get: my-code      
+    - get: ci-code      
     - get: rc-deployment-manifest-store
       params:
         filename: hello-world-app-dev-(.)+\.yml
       passed: [dev-deploy]
       trigger: true
     - get: rc-version
-      passed: [build-unit-test, dev-deploy]
-      resource: app-version
-    - get: source-code
+      passed: [dev-deploy]
+      resource: version
+    - get: product-code
   - task: func-dev-test
-    file: my-code/task-func-dev-test.yml
+    file: ci-code/task-func-dev-test.yml
+
+- name: dev-func-test
+  public: true
+  serial: true
+  plan:
+  - aggregate:
+    - get: ci-code      
+    - get: rc-deployment-manifest-store
+      params:
+        filename: hello-world-app-dev-(.)+\.yml
+      passed: [dev-smoke-test]
+      trigger: true
+    - get: rc-version
+      passed: [dev-smoke-test]
+      resource: version
+    - get: product-code
+  - task: func-dev-test
+    file: ci-code/task-func-dev-test.yml
 
 resources:
-- name: source-code
+- name: product-code
   type: git
   source:
     uri: https://github.com/owaism/java-helloworld-concourse-sample.git
-- name: my-code
+- name: ci-code
   type: git
   source:
     uri: https://github.com/owaism/hello-world-concourse-poc.git
@@ -112,7 +143,7 @@ resources:
     bucket: {{s3-rc-deployment-manifest-bucket}}
     regexp: hello-world-app-dev-rc1-([0-9]+\.[0-9]+\.[0-9]+).yml
     endpoint: s3-us-west-2.amazonaws.com
-- name: app-version
+- name: version
   type: semver
   source:
     bucket: {{s3-artifact-version-bucket}}
