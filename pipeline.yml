@@ -85,7 +85,7 @@ jobs:
       - name: my-code
       run:
         path: my-code/func-test.sh
-        args: [source-code]
+        args: [source-code, ftesting, "-Pftesturi=https://hello-world-concourse.run.covisintrnd.com"]
 resources:
 - name: source-code
   type: git
