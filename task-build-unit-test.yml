@@ -1,9 +1,0 @@
-platform: linux
-image: docker:///pierrevincent/gradle-java8
-inputs:
-- name: source-code
-- name: my-code
-- name: rc-version
-run:
-  path: my-code/build-unit-test.sh
-  args: [source-code, hello-world-app, rc-version/number]

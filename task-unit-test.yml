@@ -1,8 +1,8 @@
 platform: linux
 image: docker:///pierrevincent/gradle-java8
 inputs:
-- name: source-code
-- name: my-code
+- name: product-code
+- name: ci-code
 run:
-  path: my-code/build-unit-test.sh
-  args: [source-code]
+  path: ci-code/build-unit-test.sh
+  args: [product-code]
