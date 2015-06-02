@@ -4,5 +4,5 @@ inputs:
 - name: product-code
 - name: ci-code
 run:
-  path: ci-code/build-unit-test.sh
+  path: ci-code/unit-test.sh
   args: [product-code]
