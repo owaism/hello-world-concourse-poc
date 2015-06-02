@@ -25,10 +25,6 @@ jobs:
       run:
         path: my-code/build-unit-test.sh
         args: [source-code, hello-world-app, rc-version/number]
-  - put: rc-version
-    resource: app-version
-    params: 
-      file: rc-version/number
   - put: artifact-repo
     params:
       from: build-unit-test/hello-world-app(.)+\.war
@@ -48,7 +44,12 @@ jobs:
     - get: deployment-manifest-store
       params:
        filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
-       #filename: hello-world-app-dev-([0-9]+\.[0-9]+\.[0-9]+).yml
+    - get: rc-version
+      trigger: false
+      resource: app-version
+      params:
+        bump: minor
+        pre: rc
   - task: setup-cf-push
     config:
       platform: linux
@@ -56,17 +57,18 @@ jobs:
         - name: artifact-repo
         - name: deployment-manifest-store
         - name: my-code
-        - name: build-unit-test
+        - name: rc-version
       run:
         path: my-code/dev-deploy.sh
-        args: [artifact-repo, deployment-manifest-store, build-unit-test/rc-version]
+        args: [artifact-repo, deployment-manifest-store, rc-version]
   - aggregate:
     - put: dev-cf
       params:
         manifest: setup-cf-push/manifest.yml
         path: setup-cf-push/deployable-artifact.war
-  - put: rc-deployment-manifest-store
-      from: hello-world-app-dev-rc1-(.)+\.yml
+    - put: rc-deployment-manifest-store
+      params:
+        from: hello-world-app-dev-rc1-(.)+\.yml
 
 - name: func-test
   public: true
@@ -89,6 +91,10 @@ jobs:
       run:
         path: my-code/func-test.sh
         args: [source-code, ftesting, "-Pftesturi=https://hello-world-concourse.run.covisintrnd.com"]
+  - put: rc-version
+    resource: app-version
+    params: 
+      file: rc-version/number
 resources:
 - name: source-code
   type: git
