@@ -71,9 +71,9 @@ jobs:
   plan:
   - aggregate:
     - get: my-code      
-    # - get: deployment-manifest-store
-    #   params:
-    #     filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
+    - get: deployment-manifest-store
+      params:
+        filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
     - get: source-code
       #passed: [dev-deploy]
   - task: func-test
@@ -82,6 +82,7 @@ jobs:
       image: docker:///owaism/ubuntu-java8-gradle-ruby
       inputs:
       - name: source-code
+      - name: my-code
       run:
         path: my-code/func-test.sh
         args: [source-code]
