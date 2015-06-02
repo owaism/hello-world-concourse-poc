@@ -15,16 +15,7 @@ jobs:
         bump: minor
         pre: rc
   - task: build-unit-test
-    config:
-      platform: linux
-      image: docker:///pierrevincent/gradle-java8
-      inputs:
-        - name: source-code
-        - name: my-code
-        - name: rc-version
-      run:
-        path: my-code/build-unit-test.sh
-        args: [source-code, hello-world-app, rc-version/number]
+    file: my-code/build-unit-test.yml
   - put: artifact-repo
     params:
       from: build-unit-test/hello-world-app(.)+\.war
@@ -62,14 +53,13 @@ jobs:
       run:
         path: my-code/dev-deploy.sh
         args: [artifact-repo, deployment-manifest-store, rc-version]
-  - aggregate:
-    - put: dev-cf
-      params:
-        manifest: setup-cf-push/manifest.yml
-        path: setup-cf-push/deployable-artifact.war
-    - put: rc-deployment-manifest-store
-      params:
-        from: hello-world-app-dev-rc1-(.)+\.yml
+  - put: dev-cf
+    params:
+      manifest: setup-cf-push/manifest.yml
+      path: setup-cf-push/deployable-artifact.war
+  - put: rc-deployment-manifest-store
+    params:
+      from: hello-world-app-dev-(.)+\.yml
 
 - name: func-test
   public: true
@@ -79,8 +69,12 @@ jobs:
     - get: my-code      
     - get: rc-deployment-manifest-store
       params:
-        filename: hello-world-app-dev-rc1-(.)+\.yml
+        filename: hello-world-app-dev-(.)+\.yml
       passed: [dev-deploy]
+      trigger: true
+    - get: rc-version
+      passed: [build-unit-test, dev-deploy]
+      resource: app-version
     - get: source-code
   - task: func-test
     config:
