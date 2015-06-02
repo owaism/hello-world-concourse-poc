@@ -28,6 +28,10 @@ jobs:
   - put: artifact-repo
     params:
       from: build-unit-test/hello-world-app(.)+\.war
+  - put: rc-version
+    resource: app-version
+    params: 
+      file: rc-version/number
 
 - name: dev-deploy
   public: true
@@ -45,11 +49,8 @@ jobs:
       params:
        filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
     - get: rc-version
-      trigger: false
+      passed: [build-unit-test]
       resource: app-version
-      params:
-        bump: minor
-        pre: rc
   - task: setup-cf-push
     config:
       platform: linux
@@ -91,10 +92,6 @@ jobs:
       run:
         path: my-code/func-test.sh
         args: [source-code, ftesting, "-Pftesturi=https://hello-world-concourse.run.covisintrnd.com"]
-  - put: rc-version
-    resource: app-version
-    params: 
-      file: rc-version/number
 resources:
 - name: source-code
   type: git
