@@ -42,6 +42,9 @@ jobs:
   serial: true
   plan:
   - aggregate:
+    - get: rc-version
+      passed: [build]
+      resource: version
     - get: ci-code
     - get: artifact-repo
       params:
@@ -52,9 +55,6 @@ jobs:
     - get: deployment-manifest-store
       params:
        filename: hello-world-app-(?=[A-Z][a-z])+-([0-9]+\.[0-9]+\.[0-9]+).yml
-    - get: rc-version
-      passed: [build]
-      resource: version
   - task: setup-cf-dev-push
     file: ci-code/task-setup-cf-dev-push.yml
   - put: dev-cf
