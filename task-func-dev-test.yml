@@ -1,0 +1,8 @@
+platform: linux
+image: docker:///owaism/ubuntu-java8-gradle-ruby
+inputs:
+- name: source-code
+- name: my-code
+run:
+  path: my-code/func-test.sh
+  args: [source-code, ftesting, "-Pftesturi=https://hello-world-concourse.run.covisintrnd.com"]

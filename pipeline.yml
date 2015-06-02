@@ -42,17 +42,8 @@ jobs:
     - get: rc-version
       passed: [build-unit-test]
       resource: app-version
-  - task: setup-cf-push
-    config:
-      platform: linux
-      inputs: 
-        - name: artifact-repo
-        - name: deployment-manifest-store
-        - name: my-code
-        - name: rc-version
-      run:
-        path: my-code/dev-deploy.sh
-        args: [artifact-repo, deployment-manifest-store, rc-version]
+  - task: setup-cf-dev-push
+    file: my-code/task-setup-cf-dev-push.yml
   - put: dev-cf
     params:
       manifest: setup-cf-push/manifest.yml
@@ -76,16 +67,9 @@ jobs:
       passed: [build-unit-test, dev-deploy]
       resource: app-version
     - get: source-code
-  - task: func-test
-    config:
-      platform: linux
-      image: docker:///owaism/ubuntu-java8-gradle-ruby
-      inputs:
-      - name: source-code
-      - name: my-code
-      run:
-        path: my-code/func-test.sh
-        args: [source-code, ftesting, "-Pftesturi=https://hello-world-concourse.run.covisintrnd.com"]
+  - task: func-dev-test
+    file: my-code/task-func-dev-test.yml
+
 resources:
 - name: source-code
   type: git

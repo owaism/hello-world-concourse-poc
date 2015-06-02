@@ -1,0 +1,9 @@
+platform: linux
+inputs: 
+- name: artifact-repo
+- name: deployment-manifest-store
+- name: my-code
+- name: rc-version
+run:
+  path: my-code/dev-deploy.sh
+  args: [artifact-repo, deployment-manifest-store, rc-version]
